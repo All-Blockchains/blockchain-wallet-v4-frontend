@@ -26,11 +26,21 @@ export default ({ BIP39, Bitcoin, crypto, ed25519, EthHd }) => {
     return ed25519.derivePath(path, seed.toString(`hex`))
   }
 
+  const generateMatomoUserId = ({ seedHex }) => {
+    const mnemonic = BIP39.entropyToMnemonic(seedHex)
+    const masterhex = BIP39.mnemonicToSeed(mnemonic)
+    const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(masterhex)
+    let hash = crypto.sha256('info.blockchain.matomo')
+    let purpose = hash.slice(0, 4).readUInt32BE(0) & 0x7fffffff
+    return masterHDNode.deriveHardened(purpose).getAddress()
+  }
+
   return {
     credentialsEntropy,
     deriveBIP32KeyFromSeedHex,
     deriveLegacyEthereumKey,
     deriveSLIP10ed25519Key,
-    entropyToSeed
+    entropyToSeed,
+    generateMatomoUserId
   }
 }
